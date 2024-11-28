@@ -1,0 +1,63 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.1.0'
+    id 'io.spring.dependency-management' version '1.1.0'
+}
+
+group = 'ooad.life.cells.pathway'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    // Maze display
+    implementation files('libs/csci4448.gameLayout-2.0.0.jar')
+    implementation 'org.springframework.boot:spring-boot-starter-rsocket'
+
+    // library to speak strings: Free Text-To-Speech
+    implementation 'net.sf.sociaal:freetts:1.2.2'
+    // Spring Boot Starter for Web Applications
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-devtools'
+
+    // Spring Boot Starter for Testing (optional, for tests)
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // BDD testing libraries
+    testImplementation 'io.cucumber:cucumber-picocontainer:7.8.0'
+    testImplementation 'io.cucumber:cucumber-java:6.10.4'
+    testImplementation 'io.cucumber:cucumber-groovy:6.10.4'
+    testImplementation 'org.apache.groovy:groovy:4.0.23'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testImplementation
+    }
+}
+
+tasks.register('cucumberCli') {
+    dependsOn assemble, testClasses
+    doLast {
+        javaexec {
+            mainClass = "io.cucumber.core.cli.Main"
+            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+            args = [
+                    '--plugin', 'pretty', 'html:bddReports',
+                    '--snippets', 'camelcase',
+                    '--plugin', 'html:target/cucumber-report.html',
+                    '--glue', 'csci.ooad.polymorphia.stepdefs',
+                    'src/test/resources/features'
+            ]
+        }
+    }
+}

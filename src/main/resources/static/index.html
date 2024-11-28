@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://themes.getbootstrap.com/wp-content/themes/bootstrap-marketplace/assets/javascript/bootstrap.min.js"></script>
+    <title>Signaling pathway UI</title>
+    <style>
+        #Bind, #PathwayStart, #Phosphate, #Dephospho, #Activate,
+        #Deactivate, #Hydrolyze, #Exchange, #EnterNucleus{
+            font-size : 15px;
+        }body {
+            background-color: rgb(226, 213, 238);
+                 }
+         .card{
+             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+         }
+    </style>
+</head>
+<body>
+
+<div class = "container-fluid">
+
+    <disv class = "row"  style ="  margin-bottom: 50px;">
+    <h1 class="text-center" style = "margin-top : 50px;">Signaling Pathway Status Board</h1>
+</disv>
+    <div id = 'initialMolecule'></div>
+<!--    <div id = 'nucleus'></div>-->
+    <div class = "container mt-4">
+<div class = "row">
+
+    <div class = "col-sm-3">
+    <div class="card mb-3" style="width: 18rem;">
+        <div class="card-body">
+            <h5 class="card-title">Pathway Running </h5>
+            <h3 id="PathwayStart" class="text-center" ></h3>
+        </div>
+    </div>
+    </div>
+    <div class = "col-sm-3">
+  <div class="card mb-3" style="width: 18rem;">
+    <div class="card-body">
+      <h5 class="card-title">Bind</h5>
+      <h3 id="Bind" class="text-center"></h3>
+    </div>
+  </div>
+    </div>
+    <div class = "col-sm-3">
+  <div class="card mb-3" style="width: 18rem;">
+    <div class="card-body">
+      <h5 class="card-title">Phosphorylate</h5>
+      <h3 id="Phosphate" class="text-center" ></h3>
+    </div>
+  </div>
+    </div>
+    <div class = "col-sm-3">
+        <div class="card mb-3" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">Dephosphorylate</h5>
+                <h3 id="Dephospho" class="text-center" ></h3>
+            </div>
+        </div>
+    </div>
+</div>
+<div class = "row">
+
+    <div class = "col-sm-3">
+        <div class="card mb-3" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">Activate </h5>
+                    <h3 id="Activate" class="text-center" ></h3>
+            </div>
+        </div>
+    </div>
+    <div class = "col-sm-3">
+        <div class="card mb-3" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">Deactivate</h5>
+                <h3 id="Deactivate" class="text-center"></h3>
+            </div>
+        </div>
+    </div>
+    <div class = "col-sm-3">
+        <div class="card mb-3" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">Hydrolysis</h5>
+                <h3 id="Hydrolyze" class="text-center" ></h3>
+            </div>
+        </div>
+    </div>
+    <div class = "col-sm-3">
+        <div class="card mb-3" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">Exchange</h5>
+                <h3 id="Exchange" class="text-center" ></h3>
+            </div>
+        </div>
+    </div>
+</div>
+    </div>
+</div>
+<script>
+    let lastUsedData = "";
+
+    async function loadHTML(targetId, filePath, callback) {
+        try {
+            const response = await fetch(filePath);
+            if (!response.ok) throw new Error(`Failed to load ${filePath}`);
+            const content = await response.text();
+            document.getElementById(targetId).innerHTML = content;
+
+            // Call the callback after HTML is loaded
+            if (callback) callback();
+        } catch (error) {
+            console.error(`Error loading HTML file ${filePath}:`, error);
+        }
+    }
+
+    // Function to move the player
+    async function movePlayer() {
+        const response = await fetch('/api/cell/move', { method: 'POST' });
+        const pathwayState = await response.text();
+        document.getElementById('pathwayState').innerText = pathwayState;
+
+        // Disable the button if the cell is over
+        if (pathwayState.includes('Game Over')) {
+            document.getElementById('moveButton').disabled = true;
+        }
+    }
+    function fetchState1(url, elementId) {
+        fetch(url)
+            .then(response => response.text())
+            .then(data => {
+
+                const element = document.getElementById(elementId);
+
+                if(element.children.length > 10){
+                    element.innerText = "";
+                }
+                // Create new content to display the latest data
+                const newContent = document.createElement('div');
+                newContent.innerText = data.trim();
+                element.appendChild(newContent);
+
+
+            })
+            .catch(error => console.error('Error fetching state:', error));
+    }
+    loadHTML('initialMolecule', 'pool.html', ()=> {
+        fetchState1('http://localhost:8080/api/cell/Cytokine', 'Cytokine');
+        fetchState1('http://localhost:8080/api/cell/EGF', 'EGF');
+        fetchState1('http://localhost:8080/api/cell/TGFB', 'TGFB');
+        fetchState1('http://localhost:8080/api/cell/EpoR', 'EpoR');
+        fetchState1('http://localhost:8080/api/cell/RTK', 'RTK');
+        fetchState1('http://localhost:8080/api/cell/TGFBR', 'TGFBR');
+        fetchState1('http://localhost:8080/api/cell/JAK2', 'JAK2');
+        fetchState1('http://localhost:8080/api/cell/MAPKinase', 'MAPKinase');
+        fetchState1('http://localhost:8080/api/cell/MEK', 'MEK');
+        fetchState1('http://localhost:8080/api/cell/Raf', 'Raf');
+        fetchState1('http://localhost:8080/api/cell/Ras', 'Ras');
+        fetchState1('http://localhost:8080/api/cell/SHP1', 'SHP1');
+        fetchState1('http://localhost:8080/api/cell/Ski', 'Ski');
+        fetchState1('http://localhost:8080/api/cell/SOCS', 'SOCS');
+        fetchState1('http://localhost:8080/api/cell/SOS', 'SOS');
+        fetchState1('http://localhost:8080/api/cell/Smad', 'Smad');
+        fetchState1('http://localhost:8080/api/cell/STAT', 'STAT');
+        fetchState1('http://localhost:8080/api/cell/GDP', 'GDP');
+        fetchState1('http://localhost:8080/api/cell/GTP', 'GTP');
+        fetchState1('http://localhost:8080/api/cell/TyrosineResidue', 'TyrosineResidue');
+    });
+
+    setInterval(() => {
+        fetchState1('http://localhost:8080/api/cell/init', 'PathwayStart');
+    }, 2000);
+
+    let lastUsedDataMap = {}; // Map to track last data for each element
+
+    setInterval(() => {
+        const fetchConfig = [
+            { url: 'http://localhost:8080/api/cell/Phosphate', elementId: 'Phosphate' },
+            { url: 'http://localhost:8080/api/cell/Bind', elementId: 'Bind' },
+            { url: 'http://localhost:8080/api/cell/Dephospho', elementId: 'Dephospho' },
+            { url: 'http://localhost:8080/api/cell/Activate', elementId: 'Activate' },
+            { url: 'http://localhost:8080/api/cell/Deactivate', elementId: 'Deactivate' },
+            { url: 'http://localhost:8080/api/cell/Hydrolyze', elementId: 'Hydrolyze' },
+            { url: 'http://localhost:8080/api/cell/Exchange', elementId: 'Exchange' },
+            { url: 'http://localhost:8080/api/cell/EnterNucleus', elementId: 'EnterNucleus' }
+        ];
+
+        fetchConfig.forEach(({ url, elementId }) => {
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    if (data.trim() !== lastUsedDataMap[elementId]?.trim()) {
+                        const element = document.getElementById(elementId);
+                        const newLine = document.createElement('div');
+                        newLine.innerText = data;
+                        element.appendChild(newLine);
+                        console.log(data);
+                        lastUsedDataMap[elementId] = data.trim();
+                    }
+                })
+                .catch(error => console.error(`Error fetching state for ${elementId}:`, error));
+        });
+    }, 1500);
+    document.getElementById("simulateButton").addEventListener("click", async () => {
+        // Prepare the request payload (if needed)
+        const requestData = {
+            innerCellConfig: "customConfig1",
+            outerCellConfig: "customConfig2",
+            nucleusConfig: "customConfig3"
+        };
+
+        // Send POST request to /simulate
+        const response = await fetch("http://localhost:8080/simulate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        // Get and display the response from the server
+        const result = await response.text();
+        document.getElementById("simulationResult").innerText = result;
+    });
+
+</script>
+</body>
+</html>
